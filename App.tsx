@@ -1,21 +1,114 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatArea } from './components/ChatArea';
 import { Sidebar } from './components/Sidebar';
 import { SystemStatus } from './components/SystemStatus';
 import { generateResponse, setCustomApiKey } from './services/geminiService';
 import { LiveVoiceModal } from './components/LiveVoiceModal';
+import { BiosBoot } from './components/BiosBoot';
+import { HackingToolkit } from './components/HackingToolkit';
 import { Message, AppMode } from './types';
 
+// --- VISUAL EFFECT: MATRIX RAIN ---
+const MatrixRain = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const chars = '01XYZ010101010アァカサタナハマヤャラワガザダバパイィキシチニヒミリヂビピウゥクスツヌフム';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops: number[] = Array(Math.ceil(columns)).fill(1);
+
+    const draw = () => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0F0';
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    };
+    const interval = setInterval(draw, 50);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 z-0 opacity-20 pointer-events-none" />;
+};
+
+// --- VISUAL EFFECT: FAKE TERMINAL LOGS ---
+const TerminalLogs = ({ active }: { active: boolean }) => {
+  const [logs, setLogs] = useState<string[]>([]);
+  
+  useEffect(() => {
+    if (!active) {
+        setLogs([]);
+        return;
+    }
+    const possibleLogs = [
+        "Connecting to remote host...",
+        "Handshake initialized...",
+        "Bypassing firewall rules...",
+        "Injecting payload...",
+        "Establishing root access...",
+        "Decrypting hashes...",
+        "Scanning open ports...",
+        "Uploading shell...",
+        "Fetching databases...",
+        "Obfuscating trace...",
+        "Privilege escalation: SUCCESS"
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+        const newLog = possibleLogs[Math.floor(Math.random() * possibleLogs.length)];
+        const time = new Date().toLocaleTimeString('en-US', {hour12: false});
+        setLogs(prev => [...prev.slice(-6), `[${time}] ${newLog}`]);
+    }, 400);
+    return () => clearInterval(interval);
+  }, [active]);
+
+  if (!active) return null;
+
+  return (
+    <div className="fixed bottom-24 right-4 w-72 bg-black/90 border border-green-500 p-3 font-mono text-[10px] text-green-500 z-50 opacity-90 pointer-events-none rounded shadow-[0_0_15px_rgba(0,255,0,0.2)]">
+        <div className="border-b border-green-500/50 mb-2 pb-1 font-bold">>> SYSTEM_TRACE</div>
+        {logs.map((l, i) => <div key={i} className="truncate">{l}</div>)}
+        <div className="animate-pulse mt-1">_</div>
+    </div>
+  );
+}
+
 const App: React.FC = () => {
+  const [bootComplete, setBootComplete] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<AppMode>('standard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [apiKeyError, setApiKeyError] = useState(false);
   const [showLiveVoice, setShowLiveVoice] = useState(false);
+  const [showToolkit, setShowToolkit] = useState(false);
   const [manualKey, setManualKey] = useState('');
   
-  // Auto-scroll to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -25,15 +118,6 @@ const App: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Check for API Key on mount
-  useEffect(() => {
-    try {
-      // Optional: Initial check logic if needed
-    } catch (e) {
-      console.error("Env check failed:", e);
-    }
-  }, []);
 
   // Handle Manual Key Submission
   const handleManualKeySubmit = () => {
@@ -46,7 +130,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Handle "Active_Rajab" easter egg / mode switch
   const handleModeSwitch = (newMode: AppMode) => {
     setMode(newMode);
     if (newMode === 'hacker') {
@@ -61,7 +144,7 @@ const App: React.FC = () => {
   const handleSendMessage = async (text: string, image?: string) => {
     const normalizedText = text.trim().toLowerCase();
 
-    // Advanced Mode Trigger Logic
+    // Trigger Logic
     const triggers = ['active_rajab', 'active rajab', 'activate rajab', 'rajab active', 'rajab mode', 'hacker mode'];
     const isTrigger = triggers.some(t => normalizedText.includes(t));
 
@@ -132,43 +215,24 @@ const App: React.FC = () => {
     }
   };
 
+  if (!bootComplete) {
+    return <BiosBoot onComplete={() => setBootComplete(true)} />;
+  }
+
   if (apiKeyError) {
     return (
       <div className="h-screen w-full bg-black text-green-500 font-mono flex flex-col items-center justify-center p-4 text-center overflow-auto">
         <div className="max-w-3xl w-full border border-green-500 p-6 rounded-lg bg-green-900/10 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
           <i className="fas fa-lock text-5xl mb-4 text-red-500 animate-pulse"></i>
           <h1 className="text-2xl font-bold mb-2 text-white">ACCESS DENIED: API KEY MISSING</h1>
-          
           <div className="bg-black/50 p-3 rounded border border-red-500/50 mb-6 text-left font-mono text-xs md:text-sm">
-            <p className="text-red-400 font-bold">⚠️ Key Not Found / Key Matches Failed</p>
-            <p className="text-gray-400 mt-1">Application can't read the key. This is usually a Build vs Runtime mismatch.</p>
+            <p className="text-red-400 font-bold">⚠️ Key Not Found</p>
+            <p>Go to Vercel Dashboard &gt; Settings &gt; Environment Variables.</p>
+            <p>Add Key: <span className="text-white">VITE_API_KEY</span></p>
+            <p className="mt-2 text-yellow-400">IMPORTANT: You MUST Redeploy the project after adding the key!</p>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-6 text-left">
-            {/* Option 1: Vercel */}
-            <div className="bg-white/5 p-4 rounded border border-white/10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] px-2 py-1 font-bold uppercase">Required Step</div>
-                <h3 className="text-white font-bold mb-2">Option 1: Fix Vercel Deployment</h3>
-                <p className="text-xs text-yellow-400 mb-1 font-bold">Kya aapne variable save karne ke baad Redeploy kiya?</p>
-                <p className="text-xs text-gray-400 mb-3">Name sahi hai (VITE_API_KEY), par code mein update hone ke liye <b>Redeploy</b> zaroori hai.</p>
-                
-                <div className="bg-black p-3 rounded border border-yellow-500/30 mb-3 flex flex-col items-center">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">1. Check Name</span>
-                    <code className="text-yellow-400 text-xl font-bold select-all">VITE_API_KEY</code>
-                </div>
-
-                <ol className="text-xs text-gray-300 list-decimal list-inside space-y-2">
-                    <li>Vercel mein Env Variable save karein.</li>
-                    <li><b>Deployments</b> tab mein jayein.</li>
-                    <li>Latest deployment ke aage 3 dots (...) click karein.</li>
-                    <li><b>Redeploy</b> select karein.</li>
-                </ol>
-            </div>
-
-            {/* Option 2: Manual Override */}
-            <div className="bg-white/5 p-4 rounded border border-white/10 flex flex-col justify-center">
-                <h3 className="text-white font-bold mb-2">Option 2: Paste Key Here</h3>
-                <p className="text-xs text-gray-400 mb-4">Fastest fix. This saves the key to your browser only.</p>
+           <div className="bg-white/5 p-4 rounded border border-white/10 flex flex-col justify-center">
+                <h3 className="text-white font-bold mb-2">Paste Key Here (Temporary)</h3>
                 <input 
                     type="text" 
                     value={manualKey}
@@ -183,23 +247,23 @@ const App: React.FC = () => {
                     UNLOCK SYSTEM
                 </button>
             </div>
-          </div>
-          
-          <button 
-            onClick={() => window.location.reload()}
-            className="mt-6 px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded text-white text-sm"
-          >
-            <i className="fas fa-sync mr-2"></i> Check Again / Reload
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`flex h-screen w-full overflow-hidden ${mode === 'hacker' ? 'text-cyber-matrix font-mono' : 'text-gray-100 font-sans'}`}>
+    <div className={`flex h-screen w-full overflow-hidden relative ${mode === 'hacker' ? 'text-cyber-matrix font-mono' : 'text-gray-100 font-sans'}`}>
+      
+      {/* HACKER MODE VISUALS */}
+      {mode === 'hacker' && <MatrixRain />}
+      {mode === 'hacker' && <TerminalLogs active={isLoading} />}
+
       {/* Live Voice Modal */}
       <LiveVoiceModal isOpen={showLiveVoice} onClose={() => setShowLiveVoice(false)} mode={mode} />
+
+      {/* Cyber Warfare Toolkit Modal */}
+      <HackingToolkit isOpen={showToolkit} onClose={() => setShowToolkit(false)} />
 
       {/* Mobile Sidebar Toggle */}
       <div className="fixed top-4 left-4 z-50 md:hidden">
@@ -219,11 +283,13 @@ const App: React.FC = () => {
           clearChat={() => setMessages([])} 
           onCloseMobile={() => setSidebarOpen(false)}
           onStartLive={() => setShowLiveVoice(true)}
+          onOpenToolkit={() => setShowToolkit(true)}
+          onQuickCommand={(cmd) => handleSendMessage(cmd)}
         />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col relative bg-gradient-to-br from-cyber-900 to-black w-full">
+      <div className="flex-1 flex flex-col relative bg-gradient-to-br from-cyber-900 to-black w-full z-10 bg-opacity-90">
         {/* Header / System Status */}
         <SystemStatus mode={mode} />
 
@@ -239,12 +305,6 @@ const App: React.FC = () => {
                     ? '>> UNRESTRICTED MODE // 100% KNOWLEDGE ACCESS...' 
                     : 'Ready for input. Verified Real-Time Information active.'}
                 </p>
-                {mode === 'standard' && (
-                  <div className="mt-6 p-3 bg-white/5 rounded-lg inline-block text-xs cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleSendMessage('Active_Rajab')}>
-                    <i className="fas fa-terminal mr-2"></i>
-                    Type command: <span className="font-mono text-cyber-neon">Active_Rajab</span>
-                  </div>
-                )}
               </div>
             )}
             
@@ -280,7 +340,6 @@ const App: React.FC = () => {
   );
 };
 
-// Sub-component for Input
 const MessageInput: React.FC<{
   onSend: (text: string, image?: string) => void;
   mode: AppMode;
@@ -345,7 +404,6 @@ const MessageInput: React.FC<{
           <i className="fas fa-image"></i>
         </button>
         
-        {/* LIVE VOICE BUTTON */}
         <button 
           onClick={onStartLive}
           className={`p-3 rounded-lg transition-colors ${
