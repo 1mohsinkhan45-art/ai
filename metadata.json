@@ -1,0 +1,8 @@
+{
+  "name": "OmniMind AI - Ultimate Assistant",
+  "description": "A professional-grade AI interface integrating Gemini 2.5 with Search Grounding, Vision, and advanced reasoning capabilities. Features a high-tech 'System Mode' for complex tasks.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
