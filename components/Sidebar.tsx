@@ -19,7 +19,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ mode, setMode, clearChat, onCl
   const attackVectors = [
       { name: 'Auto Recon (Network)', cmd: 'Generate a script to automate network reconnaissance for 192.168.1.0/24 using nmap and masscan.' },
       { name: 'Brute Force SSH', cmd: 'Provide a Hydra command to brute force SSH on a target IP using a user list and rockyou.txt.' },
-      { name: 'XSS Payload Gen', cmd: 'Generate a list of polyglot XSS payloads for testing a search bar input.' },
+      { name: 'XSS Polyglots', cmd: 'Generate a list of polyglot XSS payloads for testing a search bar input.' },
+      { name: 'Win PrivEsc Check', cmd: 'Provide a PowerShell command to check for common Windows privilege escalation vectors.' },
+      { name: 'Subdomain Enum', cmd: 'Generate a python script to enumerate subdomains using crt.sh API.' },
+      { name: 'Docker Escape', cmd: 'Explain and provide commands for testing Docker container breakout via mounted socket.' },
   ];
 
   const commonPayloads = [

