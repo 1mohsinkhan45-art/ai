@@ -49,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mode, setMode, clearChat, onCl
           <i className={`fas ${isHacker ? 'fa-terminal' : 'fa-cube'} mr-2`}></i>
           {isHacker ? 'ACTIVE_' : 'OMNI'}
           <span className={isHacker ? 'text-white bg-cyber-matrix px-1 text-black' : 'text-cyber-neon'}>
-            {isHacker ? 'RAJAB' : 'MIND'}
+            {isHacker ? 'UNKNOWNPERSON' : 'MIND'}
           </span>
         </h1>
         <button onClick={onCloseMobile} className="md:hidden">
@@ -181,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mode, setMode, clearChat, onCl
         </button>
         
         <div className="text-[10px] text-center opacity-30">
-          v2.6.0 // {isHacker ? 'RAJAB_OS' : 'GEMINI_CORE'}
+          v2.6.0 // {isHacker ? 'UNKNOWNPERSON_OS' : 'GEMINI_CORE'}
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 
 interface BiosBootProps {
@@ -10,7 +11,7 @@ export const BiosBoot: React.FC<BiosBootProps> = ({ onComplete }) => {
     "BIOS DATE 09/22/2025 15:22:41 VER 1.0.2",
     "CPU: QUANTUM CORE i9-9900K @ 5.00GHz",
     "Memory Test: 65536K OK",
-    "Detecting Primary Master ... RAJAB_SSD_2TB",
+    "Detecting Primary Master ... UNKNOWNPERSON_SSD_2TB",
     "Detecting Primary Slave  ... NONE",
     "Loading BOOTLOADER...",
     "Mounting /dev/sda1 ... OK",
@@ -22,7 +23,7 @@ export const BiosBoot: React.FC<BiosBootProps> = ({ onComplete }) => {
     "Connecting to ENCRYPTED_RELAY ... ESTABLISHED",
     "IP ADDRESS ACQUIRED: 192.168.X.X (VPN ACTIVE)",
     "SYSTEM READY.",
-    "LAUNCHING ACTIVE_RAJAB OS..."
+    "LAUNCHING ACTIVE_UNKNOWNPERSON OS..."
   ];
 
   const bottomRef = useRef<HTMLDivElement>(null);

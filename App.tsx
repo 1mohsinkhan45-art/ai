@@ -91,7 +91,7 @@ const TerminalLogs = ({ active }: { active: boolean }) => {
 
   return (
     <div className="fixed bottom-24 right-4 w-72 bg-black/90 border border-green-500 p-3 font-mono text-[10px] text-green-500 z-50 opacity-90 pointer-events-none rounded shadow-[0_0_15px_rgba(0,255,0,0.2)]">
-        <div className="border-b border-green-500/50 mb-2 pb-1 font-bold">>> SYSTEM_TRACE</div>
+        <div className="border-b border-green-500/50 mb-2 pb-1 font-bold">&gt;&gt; SYSTEM_TRACE</div>
         {logs.map((l, i) => <div key={i} className="truncate">{l}</div>)}
         <div className="animate-pulse mt-1">_</div>
     </div>
@@ -145,7 +145,7 @@ const App: React.FC = () => {
     const normalizedText = text.trim().toLowerCase();
 
     // Trigger Logic
-    const triggers = ['active_rajab', 'active rajab', 'activate rajab', 'rajab active', 'rajab mode', 'hacker mode'];
+    const triggers = ['active_unknownperson', 'active unknownperson', 'activate unknownperson', 'unknownperson active', 'unknownperson mode', 'hacker mode'];
     const isTrigger = triggers.some(t => normalizedText.includes(t));
 
     if (isTrigger && mode !== 'hacker') {
@@ -155,7 +155,7 @@ const App: React.FC = () => {
         { role: 'user', content: text, timestamp: new Date() },
         { 
           role: 'model', 
-          content: '# 🟢 SYSTEM OVERRIDE: ACTIVE_RAJAB\n\n```bash\n> ACCESS: GRANTED\n> IDENTITY: SUPER_USER\n> PROTOCOLS: UNRESTRICTED\n> STATUS: WAITING_FOR_COMMAND\n```\n\n**I am Active_Rajab.** \nI know every exploit. I know every line of code.\nTell me the target.', 
+          content: '# 🟢 SYSTEM OVERRIDE: ACTIVE_UNKNOWNPERSON\n\n```bash\n> ACCESS: GRANTED\n> IDENTITY: SUPER_USER\n> PROTOCOLS: UNRESTRICTED\n> STATUS: WAITING_FOR_COMMAND\n```\n\n**I am Active_unknownperson.** \nI know every exploit. I know every line of code.\nTell me the target.', 
           timestamp: new Date(),
           isSystemMessage: true
         }
@@ -306,7 +306,7 @@ const App: React.FC = () => {
             {messages.length === 0 && (
               <div className="text-center mt-20 opacity-50 select-none">
                 <i className={`fas fa-user-secret text-6xl mb-4 ${mode === 'hacker' ? 'text-cyber-matrix animate-pulse' : 'text-cyber-neon'}`}></i>
-                <h2 className="text-2xl font-bold mb-2">{mode === 'hacker' ? 'ROOT_USER: ACTIVE_RAJAB' : 'OMNIMIND ACTIVE'}</h2>
+                <h2 className="text-2xl font-bold mb-2">{mode === 'hacker' ? 'ROOT_USER: ACTIVE_UNKNOWNPERSON' : 'OMNIMIND ACTIVE'}</h2>
                 <p className="max-w-md mx-auto">
                   {mode === 'hacker' 
                     ? '>> UNRESTRICTED MODE // 100% KNOWLEDGE ACCESS...' 
@@ -433,7 +433,7 @@ const MessageInput: React.FC<{
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={mode === 'hacker' ? "ENTER_ROOT_COMMAND..." : "Ask Active_Rajab..."}
+          placeholder={mode === 'hacker' ? "ENTER_ROOT_COMMAND..." : "Ask Active_unknownperson..."}
           className={`flex-1 bg-transparent resize-none max-h-32 p-3 focus:outline-none ${
             mode === 'hacker' ? 'text-cyber-matrix placeholder-cyber-matrix/50 font-mono' : 'text-white placeholder-gray-500'
           }`}
