@@ -25,6 +25,7 @@ const App: React.FC = () => {
 
   // Check for API Key on mount to prevent "Black Screen" confusion
   useEffect(() => {
+    // Simple check: if env var is empty string or undefined
     if (!process.env.API_KEY) {
       setApiKeyError(true);
     }
@@ -94,13 +95,19 @@ const App: React.FC = () => {
       };
       
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Generation error:", error);
+      
+      if (error.message === "API_KEY_MISSING" || error.message?.includes("API_KEY")) {
+        setApiKeyError(true);
+        return;
+      }
+
       const errorMessage: Message = {
         role: 'model',
         content: mode === 'hacker' 
             ? ">>> CONNECTION_LOST. PACKET_DROP_DETECTED. CHECK API_KEY." 
-            : "Connection interrupted. Ensure API_KEY is valid in your Vercel Settings.",
+            : "Connection interrupted. Please check if your API Key is valid.",
         timestamp: new Date(),
         isError: true
       };
@@ -112,13 +119,31 @@ const App: React.FC = () => {
 
   if (apiKeyError) {
     return (
-      <div className="h-screen w-full bg-black text-green-500 font-mono flex flex-col items-center justify-center p-8 text-center">
-        <i className="fas fa-exclamation-triangle text-6xl mb-4 text-red-500 animate-pulse"></i>
-        <h1 className="text-3xl font-bold mb-4">SYSTEM CONFIGURATION ERROR</h1>
-        <p className="mb-2 text-white">The application loaded, but the <strong>API_KEY</strong> is missing.</p>
-        <p className="mb-8 text-gray-400">If you are on Vercel, go to Settings &gt; Environment Variables and add <code>API_KEY</code>.</p>
-        <div className="border border-green-500 p-4 rounded bg-green-900/10">
-          process.env.API_KEY is undefined
+      <div className="h-screen w-full bg-black text-green-500 font-mono flex flex-col items-center justify-center p-8 text-center overflow-auto">
+        <div className="max-w-2xl border border-green-500 p-8 rounded-lg bg-green-900/10 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
+          <i className="fas fa-skull-crossbones text-6xl mb-6 text-red-500 animate-pulse"></i>
+          <h1 className="text-3xl font-bold mb-4 text-white">SYSTEM HALTED</h1>
+          
+          <div className="bg-black/50 p-4 rounded border border-red-500/50 mb-6 text-left font-mono text-sm">
+            <p className="text-red-400">Error: API_KEY_NOT_FOUND</p>
+            <p className="text-gray-400">Process terminated. Env variable is undefined.</p>
+          </div>
+
+          <h2 className="text-xl text-white mb-2">How to fix on Vercel:</h2>
+          <ol className="text-left list-decimal list-inside space-y-2 text-gray-300 mb-6 bg-white/5 p-4 rounded">
+            <li>Go to Vercel Dashboard &gt; Project &gt; <strong>Settings</strong></li>
+            <li>Click <strong>Environment Variables</strong></li>
+            <li>Key: <code className="text-green-400">API_KEY</code></li>
+            <li>Value: <span className="text-yellow-500">[Paste your Gemini API Key]</span></li>
+            <li>Click Save and then <strong>Redeploy</strong> your project.</li>
+          </ol>
+          
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-green-600 hover:bg-green-500 text-black font-bold rounded transition-colors"
+          >
+            RETRY CONNECTION
+          </button>
         </div>
       </div>
     );

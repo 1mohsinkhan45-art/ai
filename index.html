@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OmniMind AI - Active_Rajab</title>
+    <title>Active_Rajab - System Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script>
@@ -80,16 +80,17 @@
         text-shadow: 0 0 5px rgba(0, 255, 65, 0.8);
       }
 
-      /* Loader for initial mount */
-      #root:empty::before {
-        content: "INITIALIZING SYSTEM...";
-        display: block;
-        text-align: center;
-        margin-top: 20%;
-        font-family: 'Fira Code', monospace;
+      /* Initial CSS Loader in case React takes time */
+      .initial-loader {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
         color: #00ff41;
-        font-size: 24px;
-        animation: pulse 1s infinite;
+        font-family: monospace;
+        font-size: 1.5rem;
+        background-color: #000;
       }
     </style>
   <script type="importmap">
@@ -106,7 +107,12 @@
 </script>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-loader">
+        <div>> INITIALIZING_RAJAB_SYSTEM...</div>
+        <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 10px;">Loading Neural Interface...</div>
+      </div>
+    </div>
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>
