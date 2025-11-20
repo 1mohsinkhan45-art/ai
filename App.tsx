@@ -3,6 +3,7 @@ import { ChatArea } from './components/ChatArea';
 import { Sidebar } from './components/Sidebar';
 import { SystemStatus } from './components/SystemStatus';
 import { generateResponse } from './services/geminiService';
+import { LiveVoiceModal } from './components/LiveVoiceModal';
 import { Message, AppMode } from './types';
 
 const App: React.FC = () => {
@@ -11,6 +12,7 @@ const App: React.FC = () => {
   const [mode, setMode] = useState<AppMode>('standard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [apiKeyError, setApiKeyError] = useState(false);
+  const [showLiveVoice, setShowLiveVoice] = useState(false);
   
   // Auto-scroll to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -151,6 +153,9 @@ const App: React.FC = () => {
 
   return (
     <div className={`flex h-screen w-full overflow-hidden ${mode === 'hacker' ? 'text-cyber-matrix font-mono' : 'text-gray-100 font-sans'}`}>
+      {/* Live Voice Modal */}
+      <LiveVoiceModal isOpen={showLiveVoice} onClose={() => setShowLiveVoice(false)} mode={mode} />
+
       {/* Mobile Sidebar Toggle */}
       <div className="fixed top-4 left-4 z-50 md:hidden">
         <button 
@@ -216,7 +221,12 @@ const App: React.FC = () => {
         {/* Input Area */}
         <div className="p-4 bg-opacity-90 backdrop-blur-md border-t border-white/5">
           <div className="max-w-4xl mx-auto">
-             <MessageInput onSend={handleSendMessage} mode={mode} isLoading={isLoading} />
+             <MessageInput 
+                onSend={handleSendMessage} 
+                mode={mode} 
+                isLoading={isLoading} 
+                onStartLive={() => setShowLiveVoice(true)}
+             />
           </div>
         </div>
       </div>
@@ -229,7 +239,8 @@ const MessageInput: React.FC<{
   onSend: (text: string, image?: string) => void;
   mode: AppMode;
   isLoading: boolean;
-}> = ({ onSend, mode, isLoading }) => {
+  onStartLive: () => void;
+}> = ({ onSend, mode, isLoading, onStartLive }) => {
   const [text, setText] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -287,6 +298,18 @@ const MessageInput: React.FC<{
         >
           <i className="fas fa-image"></i>
         </button>
+        
+        {/* LIVE VOICE BUTTON */}
+        <button 
+          onClick={onStartLive}
+          className={`p-3 rounded-lg transition-colors ${
+            mode === 'hacker' ? 'text-cyber-matrix hover:bg-cyber-matrix/10' : 'text-gray-400 hover:text-white hover:bg-white/10'
+          }`}
+          title="Start Live Voice"
+        >
+           <i className="fas fa-microphone-lines"></i>
+        </button>
+
         <input 
           type="file" 
           ref={fileInputRef} 
