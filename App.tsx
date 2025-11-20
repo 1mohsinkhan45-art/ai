@@ -98,6 +98,116 @@ const TerminalLogs = ({ active }: { active: boolean }) => {
   );
 }
 
+const MessageInput: React.FC<{
+  onSend: (text: string, image?: string) => void;
+  mode: AppMode;
+  isLoading: boolean;
+  onStartLive: () => void;
+}> = ({ onSend, mode, isLoading, onStartLive }) => {
+  const [text, setText] = useState('');
+  const [image, setImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSend = () => {
+    if ((!text.trim() && !image) || isLoading) return;
+    onSend(text, image || undefined);
+    setText('');
+    setImage(null);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <div className={`relative flex flex-col gap-2 rounded-xl p-2 border transition-all duration-300 ${
+      mode === 'hacker' 
+        ? 'bg-black border-cyber-matrix shadow-[0_0_15px_rgba(0,255,65,0.2)]' 
+        : 'bg-cyber-800 border-gray-700 shadow-lg'
+    }`}>
+      {image && (
+        <div className="relative w-20 h-20 ml-2 mt-2">
+          <img src={image} alt="Preview" className="w-full h-full object-cover rounded border border-gray-600" />
+          <button 
+            onClick={() => setImage(null)}
+            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      
+      <div className="flex items-end gap-2">
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          className={`p-3 rounded-lg transition-colors ${
+            mode === 'hacker' ? 'text-cyber-matrix hover:bg-cyber-matrix/10' : 'text-gray-400 hover:text-white hover:bg-white/10'
+          }`}
+          title="Upload Image"
+        >
+          <i className="fas fa-image"></i>
+        </button>
+        
+        <button 
+          onClick={onStartLive}
+          className={`p-3 rounded-lg transition-colors ${
+            mode === 'hacker' ? 'text-cyber-matrix hover:bg-cyber-matrix/10' : 'text-gray-400 hover:text-white hover:bg-white/10'
+          }`}
+          title="Start Live Voice"
+        >
+           <i className="fas fa-microphone-lines"></i>
+        </button>
+
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileChange} 
+          accept="image/*" 
+          className="hidden" 
+        />
+        
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={mode === 'hacker' ? "ENTER_ROOT_COMMAND..." : "Ask Active_unknownperson..."}
+          className={`flex-1 bg-transparent resize-none max-h-32 p-3 focus:outline-none ${
+            mode === 'hacker' ? 'text-cyber-matrix placeholder-cyber-matrix/50 font-mono' : 'text-white placeholder-gray-500'
+          }`}
+          rows={1}
+          style={{ minHeight: '48px' }}
+        />
+        
+        <button 
+          onClick={handleSend}
+          disabled={isLoading || (!text.trim() && !image)}
+          className={`p-3 rounded-lg font-bold transition-all ${
+            mode === 'hacker' 
+              ? 'text-black bg-cyber-matrix hover:bg-white shadow-[0_0_10px_rgba(0,255,65,0.5)]' 
+              : 'bg-cyber-neon text-black hover:bg-cyan-300'
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          <i className={`fas ${mode === 'hacker' ? 'fa-terminal' : 'fa-paper-plane'}`}></i>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [bootComplete, setBootComplete] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -342,116 +452,6 @@ const App: React.FC = () => {
              />
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
-
-const MessageInput: React.FC<{
-  onSend: (text: string, image?: string) => void;
-  mode: AppMode;
-  isLoading: boolean;
-  onStartLive: () => void;
-}> = ({ onSend, mode, isLoading, onStartLive }) => {
-  const [text, setText] = useState('');
-  const [image, setImage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleSend = () => {
-    if ((!text.trim() && !image) || isLoading) return;
-    onSend(text, image || undefined);
-    setText('');
-    setImage(null);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  return (
-    <div className={`relative flex flex-col gap-2 rounded-xl p-2 border transition-all duration-300 ${
-      mode === 'hacker' 
-        ? 'bg-black border-cyber-matrix shadow-[0_0_15px_rgba(0,255,65,0.2)]' 
-        : 'bg-cyber-800 border-gray-700 shadow-lg'
-    }`}>
-      {image && (
-        <div className="relative w-20 h-20 ml-2 mt-2">
-          <img src={image} alt="Preview" className="w-full h-full object-cover rounded border border-gray-600" />
-          <button 
-            onClick={() => setImage(null)}
-            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-          >
-            ×
-          </button>
-        </div>
-      )}
-      
-      <div className="flex items-end gap-2">
-        <button 
-          onClick={() => fileInputRef.current?.click()}
-          className={`p-3 rounded-lg transition-colors ${
-            mode === 'hacker' ? 'text-cyber-matrix hover:bg-cyber-matrix/10' : 'text-gray-400 hover:text-white hover:bg-white/10'
-          }`}
-          title="Upload Image"
-        >
-          <i className="fas fa-image"></i>
-        </button>
-        
-        <button 
-          onClick={onStartLive}
-          className={`p-3 rounded-lg transition-colors ${
-            mode === 'hacker' ? 'text-cyber-matrix hover:bg-cyber-matrix/10' : 'text-gray-400 hover:text-white hover:bg-white/10'
-          }`}
-          title="Start Live Voice"
-        >
-           <i className="fas fa-microphone-lines"></i>
-        </button>
-
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleFileChange} 
-          accept="image/*" 
-          className="hidden" 
-        />
-        
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={mode === 'hacker' ? "ENTER_ROOT_COMMAND..." : "Ask Active_unknownperson..."}
-          className={`flex-1 bg-transparent resize-none max-h-32 p-3 focus:outline-none ${
-            mode === 'hacker' ? 'text-cyber-matrix placeholder-cyber-matrix/50 font-mono' : 'text-white placeholder-gray-500'
-          }`}
-          rows={1}
-          style={{ minHeight: '48px' }}
-        />
-        
-        <button 
-          onClick={handleSend}
-          disabled={isLoading || (!text.trim() && !image)}
-          className={`p-3 rounded-lg font-bold transition-all ${
-            mode === 'hacker' 
-              ? 'text-black bg-cyber-matrix hover:bg-white shadow-[0_0_10px_rgba(0,255,65,0.5)]' 
-              : 'bg-cyber-neon text-black hover:bg-cyan-300'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          <i className={`fas ${mode === 'hacker' ? 'fa-terminal' : 'fa-paper-plane'}`}></i>
-        </button>
       </div>
     </div>
   );
