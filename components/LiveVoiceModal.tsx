@@ -88,23 +88,25 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
 
   const stopSession = () => {
     if (sessionRef.current) {
-        // We cannot explicitly close the session object in the SDK easily without close() method if not typed, 
-        // but we can disconnect audio. 
-        // The SDK example uses `onclose` callback but doesn't show `session.close()`.
-        // We will just stop audio processing.
+         // Just disconnect logically
     }
     
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      try { audioContextRef.current.close(); } catch(e) {}
       audioContextRef.current = null;
     }
     if (outputAudioContextRef.current) {
-      outputAudioContextRef.current.close();
+      try { outputAudioContextRef.current.close(); } catch(e) {}
       outputAudioContextRef.current = null;
     }
-    sourcesRef.current.forEach(source => source.stop());
+    sourcesRef.current.forEach(source => {
+        try { source.stop(); } catch(e) {}
+    });
     sourcesRef.current.clear();
-    setStatus('disconnected');
+    
+    if (status !== 'error') {
+        setStatus('disconnected');
+    }
     setLogs([]);
   };
 
@@ -114,8 +116,10 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
     
     try {
       const ai = getAiClient();
-      const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      // Using standard Web Audio API
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const inputAudioContext = new AudioContextClass({ sampleRate: 16000 });
+      const outputAudioContext = new AudioContextClass({ sampleRate: 24000 });
       
       audioContextRef.current = inputAudioContext;
       outputAudioContextRef.current = outputAudioContext;
@@ -124,6 +128,7 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       addLog("MIC_ACCESS_GRANTED");
 
+      // gemini-2.5-flash-native-audio-preview-09-2025 is the specific model for live
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         callbacks: {
@@ -132,7 +137,6 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
             addLog("SECURE_LINK_ESTABLISHED");
             
             const source = inputAudioContext.createMediaStreamSource(stream);
-            // Use ScriptProcessor as per example (worklet is better but complex to setup in single file)
             const scriptProcessor = inputAudioContext.createScriptProcessor(4096, 1, 1);
             
             scriptProcessor.onaudioprocess = (e) => {
@@ -178,7 +182,9 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
             const interrupted = message.serverContent?.interrupted;
             if (interrupted) {
                 addLog("INTERRUPT_SIGNAL_RECEIVED");
-                sourcesRef.current.forEach(s => s.stop());
+                sourcesRef.current.forEach(s => {
+                    try { s.stop(); } catch(e) {}
+                });
                 sourcesRef.current.clear();
                 nextStartTimeRef.current = 0;
                 setIsSpeaking(false);
@@ -189,7 +195,7 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
             setStatus('disconnected');
           },
           onerror: (err) => {
-            console.error(err);
+            console.error("Live API Error:", err);
             addLog("TRANSMISSION_ERROR");
             setStatus('error');
           }
@@ -198,7 +204,7 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
           responseModalities: [Modality.AUDIO],
           systemInstruction: isHacker ? HACKER_SYSTEM_PROMPT : "You are a helpful AI assistant.",
           speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } // 'Fenrir' or 'Kore' fit best
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
           }
         }
       });
@@ -206,7 +212,7 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
     } catch (err: any) {
       console.error("Voice Session Error:", err);
       setStatus('error');
-      addLog(`ERR: ${err.message}`);
+      addLog(`ERR: ${err.message || 'Network Failure'}`);
     }
   };
 
@@ -230,9 +236,9 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
         {/* Header */}
         <div className="flex justify-between w-full mb-8 z-10">
             <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${status === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${status === 'connected' ? 'bg-green-500 animate-pulse' : status === 'error' ? 'bg-red-600' : 'bg-yellow-500'}`}></div>
                 <span className={`font-mono text-xs ${isHacker ? 'text-cyber-matrix' : 'text-white'}`}>
-                    {status === 'connected' ? 'LIVE_FEED_ACTIVE' : 'ESTABLISHING_LINK...'}
+                    {status === 'connected' ? 'LIVE_FEED_ACTIVE' : status === 'error' ? 'CONNECTION_FAILED' : 'ESTABLISHING_LINK...'}
                 </span>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -272,6 +278,12 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
                 <div key={i} className="truncate opacity-80">{log}</div>
             ))}
         </div>
+        
+        {status === 'error' && (
+             <div className="mb-4 text-xs text-red-400 text-center max-w-[80%]">
+                 Network Error: Please check API Key permissions or internet connection.
+             </div>
+        )}
 
         {/* Controls */}
         <button 

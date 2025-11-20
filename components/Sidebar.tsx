@@ -6,9 +6,10 @@ interface SidebarProps {
   setMode: (mode: AppMode) => void;
   clearChat: () => void;
   onCloseMobile: () => void;
+  onStartLive: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ mode, setMode, clearChat, onCloseMobile }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ mode, setMode, clearChat, onCloseMobile, onStartLive }) => {
   const isHacker = mode === 'hacker';
 
   return (
@@ -35,6 +36,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ mode, setMode, clearChat, onCl
       <div className="flex-1 p-4 space-y-2">
         <div className="text-xs font-bold uppercase tracking-widest opacity-50 mb-4 ml-2">Modules</div>
         
+        {/* VOICE UPLINK BUTTON */}
+        <button 
+          onClick={onStartLive}
+          className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-all mb-4 border ${
+            isHacker 
+              ? 'bg-red-900/20 border-red-500/50 text-red-400 hover:bg-red-900/40 animate-pulse' 
+              : 'bg-blue-900/20 border-blue-500/30 text-blue-300 hover:bg-blue-900/30'
+          }`}
+        >
+          <i className="fas fa-microphone-lines w-5 text-center"></i>
+          <span className="font-bold">{isHacker ? 'SECURE_VOICE_UPLINK' : 'Live Voice Chat'}</span>
+        </button>
+
         <button className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-all ${
           isHacker ? 'hover:bg-cyber-matrix/20 hover:shadow-[0_0_10px_rgba(0,255,65,0.2)]' : 'hover:bg-white/5'
         }`}>

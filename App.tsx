@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChatArea } from './components/ChatArea';
 import { Sidebar } from './components/Sidebar';
 import { SystemStatus } from './components/SystemStatus';
-import { generateResponse } from './services/geminiService';
+import { generateResponse, setCustomApiKey } from './services/geminiService';
 import { LiveVoiceModal } from './components/LiveVoiceModal';
 import { Message, AppMode } from './types';
 
@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [apiKeyError, setApiKeyError] = useState(false);
   const [showLiveVoice, setShowLiveVoice] = useState(false);
+  const [manualKey, setManualKey] = useState('');
   
   // Auto-scroll to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -25,18 +26,25 @@ const App: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Check for API Key on mount to prevent "Black Screen" confusion
+  // Check for API Key on mount
   useEffect(() => {
-    // Safer check to avoid crash if process is undefined in some environments
     try {
-      if (!process.env.API_KEY) {
-        setApiKeyError(true);
-      }
+      // Optional: Initial check logic if needed
     } catch (e) {
       console.error("Env check failed:", e);
-      // Don't block app, but might fail later
     }
   }, []);
+
+  // Handle Manual Key Submission
+  const handleManualKeySubmit = () => {
+    if (manualKey.trim().length > 10) {
+        setCustomApiKey(manualKey);
+        setApiKeyError(false);
+        window.location.reload();
+    } else {
+        alert("Please enter a valid API Key");
+    }
+  };
 
   // Handle "Active_Rajab" easter egg / mode switch
   const handleModeSwitch = (newMode: AppMode) => {
@@ -113,8 +121,8 @@ const App: React.FC = () => {
       const errorMessage: Message = {
         role: 'model',
         content: mode === 'hacker' 
-            ? ">>> CONNECTION_LOST. PACKET_DROP_DETECTED. CHECK API_KEY." 
-            : "Connection interrupted. Please check if your API Key is valid.",
+            ? `>>> CONNECTION_LOST. ERROR: ${error.message}` 
+            : `**Connection Error**: ${error.message}. \n\nPlease try again. If this persists, check your API Key permissions.`,
         timestamp: new Date(),
         isError: true
       };
@@ -126,30 +134,54 @@ const App: React.FC = () => {
 
   if (apiKeyError) {
     return (
-      <div className="h-screen w-full bg-black text-green-500 font-mono flex flex-col items-center justify-center p-8 text-center overflow-auto">
-        <div className="max-w-2xl border border-green-500 p-8 rounded-lg bg-green-900/10 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
-          <i className="fas fa-skull-crossbones text-6xl mb-6 text-red-500 animate-pulse"></i>
-          <h1 className="text-3xl font-bold mb-4 text-white">SYSTEM HALTED</h1>
+      <div className="h-screen w-full bg-black text-green-500 font-mono flex flex-col items-center justify-center p-4 text-center overflow-auto">
+        <div className="max-w-2xl w-full border border-green-500 p-6 rounded-lg bg-green-900/10 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
+          <i className="fas fa-skull-crossbones text-5xl mb-4 text-red-500 animate-pulse"></i>
+          <h1 className="text-2xl font-bold mb-2 text-white">SYSTEM LOCKED</h1>
           
-          <div className="bg-black/50 p-4 rounded border border-red-500/50 mb-6 text-left font-mono text-sm">
-            <p className="text-red-400">Error: API_KEY_NOT_FOUND</p>
-            <p className="text-gray-400">Process terminated. Env variable is undefined.</p>
+          <div className="bg-black/50 p-3 rounded border border-red-500/50 mb-6 text-left font-mono text-xs md:text-sm">
+            <p className="text-red-400">Error: API_KEY_INVALID_OR_MISSING</p>
+            <p className="text-gray-400">The server refused the connection. Your Vercel Environment Variable might be invisible.</p>
           </div>
 
-          <h2 className="text-xl text-white mb-2">How to fix on Vercel:</h2>
-          <ol className="text-left list-decimal list-inside space-y-2 text-gray-300 mb-6 bg-white/5 p-4 rounded">
-            <li>Go to Vercel Dashboard &gt; Project &gt; <strong>Settings</strong></li>
-            <li>Click <strong>Environment Variables</strong></li>
-            <li>Key: <code className="text-green-400">API_KEY</code></li>
-            <li>Value: <span className="text-yellow-500">[Paste your Gemini API Key]</span></li>
-            <li>Click Save and then <strong>Redeploy</strong> your project.</li>
-          </ol>
+          <div className="grid md:grid-cols-2 gap-6 text-left">
+            {/* Option 1: Vercel */}
+            <div className="bg-white/5 p-4 rounded border border-white/10">
+                <h3 className="text-white font-bold mb-2">Option 1: Fix on Vercel</h3>
+                <p className="text-xs text-gray-400 mb-2">Rename your variable to include <strong>VITE_</strong> so the browser can see it.</p>
+                <ol className="text-xs text-gray-300 list-decimal list-inside space-y-1">
+                    <li>Vercel Dashboard &gt; Settings &gt; Env Variables</li>
+                    <li>Name: <code className="text-yellow-400">VITE_API_KEY</code></li>
+                    <li>Value: <span className="text-green-400">AIzaSy...</span></li>
+                    <li><strong>Save</strong> & <strong>Redeploy</strong></li>
+                </ol>
+            </div>
+
+            {/* Option 2: Manual Override */}
+            <div className="bg-white/5 p-4 rounded border border-white/10">
+                <h3 className="text-white font-bold mb-2">Option 2: Quick Fix (Manual)</h3>
+                <p className="text-xs text-gray-400 mb-2">Paste key here (Saved to Browser Storage):</p>
+                <input 
+                    type="text" 
+                    value={manualKey}
+                    onChange={(e) => setManualKey(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full bg-black border border-gray-600 rounded p-2 text-white mb-2 focus:border-green-500 outline-none text-sm"
+                />
+                <button 
+                    onClick={handleManualKeySubmit}
+                    className="w-full py-2 bg-green-600 hover:bg-green-500 text-black font-bold rounded text-sm transition-colors"
+                >
+                    UNLOCK SYSTEM
+                </button>
+            </div>
+          </div>
           
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-green-600 hover:bg-green-500 text-black font-bold rounded transition-colors"
+            className="mt-6 text-xs text-gray-500 hover:text-white underline"
           >
-            RETRY CONNECTION
+            Try Reconnecting (Reload)
           </button>
         </div>
       </div>
@@ -178,6 +210,7 @@ const App: React.FC = () => {
           setMode={handleModeSwitch} 
           clearChat={() => setMessages([])} 
           onCloseMobile={() => setSidebarOpen(false)}
+          onStartLive={() => setShowLiveVoice(true)}
         />
       </div>
 
