@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OmniMind AI</title>
+    <title>OmniMind AI - Active_Rajab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script>
@@ -46,6 +46,7 @@
       body {
         background-color: #050a10;
         color: #e2e8f0;
+        overflow: hidden; /* Prevent body scroll, handle in app */
       }
       
       /* Custom Scrollbar */
@@ -78,9 +79,34 @@
       .hacker-text {
         text-shadow: 0 0 5px rgba(0, 255, 65, 0.8);
       }
+
+      /* Loader for initial mount */
+      #root:empty::before {
+        content: "INITIALIZING SYSTEM...";
+        display: block;
+        text-align: center;
+        margin-top: 20%;
+        font-family: 'Fira Code', monospace;
+        color: #00ff41;
+        font-size: 24px;
+        animation: pulse 1s infinite;
+      }
     </style>
-  </head>
+  <script type="importmap">
+{
+  "imports": {
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
   <body>
     <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

@@ -10,6 +10,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<AppMode>('standard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [apiKeyError, setApiKeyError] = useState(false);
   
   // Auto-scroll to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -21,6 +22,13 @@ const App: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Check for API Key on mount to prevent "Black Screen" confusion
+  useEffect(() => {
+    if (!process.env.API_KEY) {
+      setApiKeyError(true);
+    }
+  }, []);
 
   // Handle "Active_Rajab" easter egg / mode switch
   const handleModeSwitch = (newMode: AppMode) => {
@@ -35,15 +43,20 @@ const App: React.FC = () => {
   };
 
   const handleSendMessage = async (text: string, image?: string) => {
-    // Check for activation command
-    if (text.trim() === 'Active_Rajab') {
+    const normalizedText = text.trim().toLowerCase();
+
+    // Advanced Mode Trigger Logic
+    const triggers = ['active_rajab', 'active rajab', 'activate rajab', 'rajab active', 'rajab mode', 'hacker mode'];
+    const isTrigger = triggers.some(t => normalizedText.includes(t));
+
+    if (isTrigger && mode !== 'hacker') {
       handleModeSwitch('hacker');
       setMessages(prev => [
         ...prev,
         { role: 'user', content: text, timestamp: new Date() },
         { 
           role: 'model', 
-          content: 'SYSTEM OVERRIDE ACCEPTED. ADVANCED PROTOCOLS INITIALIZED. WELCOME, ADMINISTRATOR.', 
+          content: '# 🟢 SYSTEM OVERRIDE: ACTIVE_RAJAB\n\n```bash\n> ACCESS: GRANTED\n> IDENTITY: SUPER_USER\n> PROTOCOLS: UNRESTRICTED\n> STATUS: WAITING_FOR_COMMAND\n```\n\n**I am Active_Rajab.** \nI know every exploit. I know every line of code.\nTell me the target.', 
           timestamp: new Date(),
           isSystemMessage: true
         }
@@ -51,12 +64,12 @@ const App: React.FC = () => {
       return;
     }
 
-    if (text.trim() === 'Deactivate') {
+    if (normalizedText === 'deactivate' || normalizedText === 'system reset') {
       handleModeSwitch('standard');
       setMessages(prev => [
         ...prev,
         { role: 'user', content: text, timestamp: new Date() },
-        { role: 'model', content: 'System restoring to standard parameters.', timestamp: new Date() }
+        { role: 'model', content: 'Stealth mode disengaged. Returning to standard protocols.', timestamp: new Date() }
       ]);
       return;
     }
@@ -85,7 +98,9 @@ const App: React.FC = () => {
       console.error("Generation error:", error);
       const errorMessage: Message = {
         role: 'model',
-        content: "Connection interrupted. Ensure API_KEY is valid and network is stable.",
+        content: mode === 'hacker' 
+            ? ">>> CONNECTION_LOST. PACKET_DROP_DETECTED. CHECK API_KEY." 
+            : "Connection interrupted. Ensure API_KEY is valid in your Vercel Settings.",
         timestamp: new Date(),
         isError: true
       };
@@ -94,6 +109,20 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  if (apiKeyError) {
+    return (
+      <div className="h-screen w-full bg-black text-green-500 font-mono flex flex-col items-center justify-center p-8 text-center">
+        <i className="fas fa-exclamation-triangle text-6xl mb-4 text-red-500 animate-pulse"></i>
+        <h1 className="text-3xl font-bold mb-4">SYSTEM CONFIGURATION ERROR</h1>
+        <p className="mb-2 text-white">The application loaded, but the <strong>API_KEY</strong> is missing.</p>
+        <p className="mb-8 text-gray-400">If you are on Vercel, go to Settings &gt; Environment Variables and add <code>API_KEY</code>.</p>
+        <div className="border border-green-500 p-4 rounded bg-green-900/10">
+          process.env.API_KEY is undefined
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex h-screen w-full overflow-hidden ${mode === 'hacker' ? 'text-cyber-matrix font-mono' : 'text-gray-100 font-sans'}`}>
@@ -126,11 +155,20 @@ const App: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-4 md:p-6 scroll-smooth">
           <div className="max-w-4xl mx-auto space-y-6 pb-20">
             {messages.length === 0 && (
-              <div className="text-center mt-20 opacity-50">
-                <i className={`fas fa-brain text-6xl mb-4 ${mode === 'hacker' ? 'text-cyber-matrix animate-pulse' : 'text-cyber-neon'}`}></i>
-                <h2 className="text-2xl font-bold mb-2">OMNIMIND ACTIVE</h2>
-                <p>Ready for input. Accessing global knowledge base.</p>
-                {mode === 'standard' && <p className="text-xs mt-4 text-gray-500">Try command: 'Active_Rajab'</p>}
+              <div className="text-center mt-20 opacity-50 select-none">
+                <i className={`fas fa-user-secret text-6xl mb-4 ${mode === 'hacker' ? 'text-cyber-matrix animate-pulse' : 'text-cyber-neon'}`}></i>
+                <h2 className="text-2xl font-bold mb-2">{mode === 'hacker' ? 'ROOT_USER: ACTIVE_RAJAB' : 'OMNIMIND ACTIVE'}</h2>
+                <p className="max-w-md mx-auto">
+                  {mode === 'hacker' 
+                    ? '>> UNRESTRICTED MODE // 100% KNOWLEDGE ACCESS...' 
+                    : 'Ready for input. Verified Real-Time Information active.'}
+                </p>
+                {mode === 'standard' && (
+                  <div className="mt-6 p-3 bg-white/5 rounded-lg inline-block text-xs cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleSendMessage('Active_Rajab')}>
+                    <i className="fas fa-terminal mr-2"></i>
+                    Type command: <span className="font-mono text-cyber-neon">Active_Rajab</span>
+                  </div>
+                )}
               </div>
             )}
             
@@ -141,8 +179,8 @@ const App: React.FC = () => {
                 <div className={`w-8 h-8 rounded flex items-center justify-center ${mode === 'hacker' ? 'bg-black border border-cyber-matrix' : 'bg-cyber-700'}`}>
                   <i className="fas fa-microchip fa-spin"></i>
                 </div>
-                <div className={`p-3 rounded-lg ${mode === 'hacker' ? 'text-cyber-matrix' : 'text-gray-400'}`}>
-                  {mode === 'hacker' ? 'PROCESSING_DATA_STREAM...' : 'Thinking...'}
+                <div className={`p-3 rounded-lg font-mono text-sm ${mode === 'hacker' ? 'text-cyber-matrix' : 'text-gray-400'}`}>
+                  {mode === 'hacker' ? '>>> EXECUTING_PAYLOAD...' : 'Processing request...'}
                 </div>
               </div>
             )}
@@ -161,7 +199,7 @@ const App: React.FC = () => {
   );
 };
 
-// Sub-component for Input (Defined here to keep file count low as per instructions, but conceptually separate)
+// Sub-component for Input
 const MessageInput: React.FC<{
   onSend: (text: string, image?: string) => void;
   mode: AppMode;
@@ -236,9 +274,9 @@ const MessageInput: React.FC<{
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={mode === 'hacker' ? "ENTER COMMAND OR QUERY..." : "Ask anything (Real-time Search enabled)..."}
+          placeholder={mode === 'hacker' ? "ENTER_ROOT_COMMAND..." : "Ask Active_Rajab..."}
           className={`flex-1 bg-transparent resize-none max-h-32 p-3 focus:outline-none ${
-            mode === 'hacker' ? 'text-cyber-matrix placeholder-cyber-matrix/50' : 'text-white placeholder-gray-500'
+            mode === 'hacker' ? 'text-cyber-matrix placeholder-cyber-matrix/50 font-mono' : 'text-white placeholder-gray-500'
           }`}
           rows={1}
           style={{ minHeight: '48px' }}
@@ -249,11 +287,11 @@ const MessageInput: React.FC<{
           disabled={isLoading || (!text.trim() && !image)}
           className={`p-3 rounded-lg font-bold transition-all ${
             mode === 'hacker' 
-              ? 'text-black bg-cyber-matrix hover:bg-white' 
+              ? 'text-black bg-cyber-matrix hover:bg-white shadow-[0_0_10px_rgba(0,255,65,0.5)]' 
               : 'bg-cyber-neon text-black hover:bg-cyan-300'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          <i className="fas fa-paper-plane"></i>
+          <i className={`fas ${mode === 'hacker' ? 'fa-terminal' : 'fa-paper-plane'}`}></i>
         </button>
       </div>
     </div>
