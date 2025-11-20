@@ -4,25 +4,6 @@ import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 // Note: If this key hits quota limits, the app will error. Users should ideally set their own.
 const FALLBACK_KEY = "AIzaSyCRoKzds8Jgs9UtlHlPeEvSdEKS2rq7JzQ"; 
 
-// Robust Environment Variable Getter
-const getEnvVar = (key: string): string | undefined => {
-  // 1. Try standard process.env (CRA / NodeJS)
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key];
-  }
-  // 2. Try Vite import.meta.env (needs try/catch to avoid syntax errors in non-module envs)
-  try {
-    // @ts-ignore
-    if (import.meta && import.meta.env && import.meta.env[key]) {
-      // @ts-ignore
-      return import.meta.env[key];
-    }
-  } catch (e) {
-    // Ignore
-  }
-  return undefined;
-};
-
 // Save custom key to LocalStorage for manual override
 export const setCustomApiKey = (key: string) => {
   if (typeof window !== 'undefined') {
@@ -32,28 +13,39 @@ export const setCustomApiKey = (key: string) => {
   }
 };
 
-// Get API Key with multiple fallback strategies for Vercel/Vite + LocalStorage
+// Get API Key with explicit static checks for Vite production builds
 const getApiKey = (): string => {
-  // 0. Check Local Storage (Manual Override)
+  // 0. Check Local Storage (Manual Override has highest priority)
   if (typeof window !== 'undefined') {
       const localKey = localStorage.getItem('active_rajab_api_key');
       if (localKey) return localKey;
   }
 
-  // 1. Check Environment Variables
-  const keysToCheck = [
-    'API_KEY',
-    'REACT_APP_API_KEY',
-    'VITE_API_KEY',
-    'NEXT_PUBLIC_API_KEY'
-  ];
-
-  for (const keyName of keysToCheck) {
-    const val = getEnvVar(keyName);
-    if (val) return val;
+  // 1. EXPLICIT STATIC CHECKS (Required for Vite Production Build)
+  // Vite replaces these strings at build time. Dynamic access (e.g. env[key]) DOES NOT WORK in production.
+  try {
+    // @ts-ignore
+    if (import.meta.env.VITE_API_KEY) return import.meta.env.VITE_API_KEY;
+    // @ts-ignore
+    if (import.meta.env.VITE_GOOGLE_API_KEY) return import.meta.env.VITE_GOOGLE_API_KEY;
+    // @ts-ignore
+    if (import.meta.env.GOOGLE_API_KEY) return import.meta.env.GOOGLE_API_KEY;
+  } catch (e) {
+    // Ignore reference errors
   }
 
-  // 2. Fallback
+  // 2. Legacy/Node Process Env Checks
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      if (process.env.VITE_API_KEY) return process.env.VITE_API_KEY;
+      if (process.env.API_KEY) return process.env.API_KEY;
+      if (process.env.REACT_APP_API_KEY) return process.env.REACT_APP_API_KEY;
+      if (process.env.NEXT_PUBLIC_API_KEY) return process.env.NEXT_PUBLIC_API_KEY;
+    }
+  } catch (e) {}
+
+  // 3. Fallback
+  console.warn("Using Fallback API Key");
   return FALLBACK_KEY;
 };
 
@@ -64,7 +56,9 @@ export const getAiClient = () => {
   if (aiClient) return aiClient;
   
   const apiKey = getApiKey();
+  
   if (!apiKey) {
+    console.error("CRITICAL: No API Key found in Env, LocalStorage, or Fallback.");
     throw new Error("API_KEY_MISSING");
   }
   

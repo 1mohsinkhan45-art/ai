@@ -135,42 +135,50 @@ const App: React.FC = () => {
   if (apiKeyError) {
     return (
       <div className="h-screen w-full bg-black text-green-500 font-mono flex flex-col items-center justify-center p-4 text-center overflow-auto">
-        <div className="max-w-2xl w-full border border-green-500 p-6 rounded-lg bg-green-900/10 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
-          <i className="fas fa-skull-crossbones text-5xl mb-4 text-red-500 animate-pulse"></i>
-          <h1 className="text-2xl font-bold mb-2 text-white">SYSTEM LOCKED</h1>
+        <div className="max-w-3xl w-full border border-green-500 p-6 rounded-lg bg-green-900/10 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
+          <i className="fas fa-lock text-5xl mb-4 text-red-500 animate-pulse"></i>
+          <h1 className="text-2xl font-bold mb-2 text-white">ACCESS DENIED: API KEY MISSING</h1>
           
           <div className="bg-black/50 p-3 rounded border border-red-500/50 mb-6 text-left font-mono text-xs md:text-sm">
-            <p className="text-red-400">Error: API_KEY_INVALID_OR_MISSING</p>
-            <p className="text-gray-400">The server refused the connection. Your Vercel Environment Variable might be invisible.</p>
+            <p className="text-red-400 font-bold">⚠️ Key Not Found / Key Matches Failed</p>
+            <p className="text-gray-400 mt-1">Application can't read the key. This is usually a Build vs Runtime mismatch.</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 text-left">
             {/* Option 1: Vercel */}
-            <div className="bg-white/5 p-4 rounded border border-white/10">
-                <h3 className="text-white font-bold mb-2">Option 1: Fix on Vercel</h3>
-                <p className="text-xs text-gray-400 mb-2">Rename your variable to include <strong>VITE_</strong> so the browser can see it.</p>
-                <ol className="text-xs text-gray-300 list-decimal list-inside space-y-1">
-                    <li>Vercel Dashboard &gt; Settings &gt; Env Variables</li>
-                    <li>Name: <code className="text-yellow-400">VITE_API_KEY</code></li>
-                    <li>Value: <span className="text-green-400">AIzaSy...</span></li>
-                    <li><strong>Save</strong> & <strong>Redeploy</strong></li>
+            <div className="bg-white/5 p-4 rounded border border-white/10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] px-2 py-1 font-bold uppercase">Required Step</div>
+                <h3 className="text-white font-bold mb-2">Option 1: Fix Vercel Deployment</h3>
+                <p className="text-xs text-yellow-400 mb-1 font-bold">Kya aapne variable save karne ke baad Redeploy kiya?</p>
+                <p className="text-xs text-gray-400 mb-3">Name sahi hai (VITE_API_KEY), par code mein update hone ke liye <b>Redeploy</b> zaroori hai.</p>
+                
+                <div className="bg-black p-3 rounded border border-yellow-500/30 mb-3 flex flex-col items-center">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">1. Check Name</span>
+                    <code className="text-yellow-400 text-xl font-bold select-all">VITE_API_KEY</code>
+                </div>
+
+                <ol className="text-xs text-gray-300 list-decimal list-inside space-y-2">
+                    <li>Vercel mein Env Variable save karein.</li>
+                    <li><b>Deployments</b> tab mein jayein.</li>
+                    <li>Latest deployment ke aage 3 dots (...) click karein.</li>
+                    <li><b>Redeploy</b> select karein.</li>
                 </ol>
             </div>
 
             {/* Option 2: Manual Override */}
-            <div className="bg-white/5 p-4 rounded border border-white/10">
-                <h3 className="text-white font-bold mb-2">Option 2: Quick Fix (Manual)</h3>
-                <p className="text-xs text-gray-400 mb-2">Paste key here (Saved to Browser Storage):</p>
+            <div className="bg-white/5 p-4 rounded border border-white/10 flex flex-col justify-center">
+                <h3 className="text-white font-bold mb-2">Option 2: Paste Key Here</h3>
+                <p className="text-xs text-gray-400 mb-4">Fastest fix. This saves the key to your browser only.</p>
                 <input 
                     type="text" 
                     value={manualKey}
                     onChange={(e) => setManualKey(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="w-full bg-black border border-gray-600 rounded p-2 text-white mb-2 focus:border-green-500 outline-none text-sm"
+                    placeholder="AIzaSy... (Paste Key Here)"
+                    className="w-full bg-black border border-gray-600 rounded p-3 text-white mb-3 focus:border-green-500 outline-none text-sm font-mono"
                 />
                 <button 
                     onClick={handleManualKeySubmit}
-                    className="w-full py-2 bg-green-600 hover:bg-green-500 text-black font-bold rounded text-sm transition-colors"
+                    className="w-full py-3 bg-green-600 hover:bg-green-500 text-black font-bold rounded text-sm transition-colors shadow-[0_0_15px_rgba(0,255,0,0.3)]"
                 >
                     UNLOCK SYSTEM
                 </button>
@@ -179,9 +187,9 @@ const App: React.FC = () => {
           
           <button 
             onClick={() => window.location.reload()}
-            className="mt-6 text-xs text-gray-500 hover:text-white underline"
+            className="mt-6 px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded text-white text-sm"
           >
-            Try Reconnecting (Reload)
+            <i className="fas fa-sync mr-2"></i> Check Again / Reload
           </button>
         </div>
       </div>
