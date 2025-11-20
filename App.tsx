@@ -215,6 +215,13 @@ const App: React.FC = () => {
     }
   };
 
+  const handleToolkitExecute = (cmd: string, toolName: string) => {
+    setShowToolkit(false);
+    // Inject a simulated execution prompt
+    const prompt = `**[VIRTUAL_TERMINAL_EXECUTION]**\n\nCommand: \`${cmd}\`\n\n**TASK:** Simulate the execution of this ${toolName} command in a realistic Kali Linux terminal environment. \n1. Show the initializing logs.\n2. Show the progress (e.g., scanning, brute-forcing percentages, handshake capture).\n3. Show a successful 'hit' or result example (mock data).\n4. Explain what happened in technical terms and how this tool works in real life.`;
+    handleSendMessage(prompt);
+  };
+
   if (!bootComplete) {
     return <BiosBoot onComplete={() => setBootComplete(true)} />;
   }
@@ -263,7 +270,7 @@ const App: React.FC = () => {
       <LiveVoiceModal isOpen={showLiveVoice} onClose={() => setShowLiveVoice(false)} mode={mode} />
 
       {/* Cyber Warfare Toolkit Modal */}
-      <HackingToolkit isOpen={showToolkit} onClose={() => setShowToolkit(false)} />
+      <HackingToolkit isOpen={showToolkit} onClose={() => setShowToolkit(false)} onExecute={handleToolkitExecute} />
 
       {/* Mobile Sidebar Toggle */}
       <div className="fixed top-4 left-4 z-50 md:hidden">
