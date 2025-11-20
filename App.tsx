@@ -27,9 +27,14 @@ const App: React.FC = () => {
 
   // Check for API Key on mount to prevent "Black Screen" confusion
   useEffect(() => {
-    // Simple check: if env var is empty string or undefined
-    if (!process.env.API_KEY) {
-      setApiKeyError(true);
+    // Safer check to avoid crash if process is undefined in some environments
+    try {
+      if (!process.env.API_KEY) {
+        setApiKeyError(true);
+      }
+    } catch (e) {
+      console.error("Env check failed:", e);
+      // Don't block app, but might fail later
     }
   }, []);
 
