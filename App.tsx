@@ -6,7 +6,6 @@ import { SystemStatus } from './components/SystemStatus';
 import { generateResponse, setCustomApiKey } from './services/geminiService';
 import { LiveVoiceModal } from './components/LiveVoiceModal';
 import { BiosBoot } from './components/BiosBoot';
-import { HackingToolkit } from './components/HackingToolkit';
 import { Message, AppMode } from './types';
 
 // --- VISUAL EFFECT: MATRIX RAIN ---
@@ -91,7 +90,7 @@ const TerminalLogs = ({ active }: { active: boolean }) => {
 
   return (
     <div className="fixed bottom-24 right-4 w-72 bg-black/90 border border-green-500 p-3 font-mono text-[10px] text-green-500 z-50 opacity-90 pointer-events-none rounded shadow-[0_0_15px_rgba(0,255,0,0.2)]">
-        <div className="border-b border-green-500/50 mb-2 pb-1 font-bold">{'>>'} SYSTEM_TRACE</div>
+        <div className="border-b border-green-500/50 mb-2 pb-1 font-bold">&gt;&gt; SYSTEM_TRACE</div>
         {logs.map((l, i) => <div key={i} className="truncate">{l}</div>)}
         <div className="animate-pulse mt-1">_</div>
     </div>
@@ -216,7 +215,6 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [apiKeyError, setApiKeyError] = useState(false);
   const [showLiveVoice, setShowLiveVoice] = useState(false);
-  const [showToolkit, setShowToolkit] = useState(false);
   const [manualKey, setManualKey] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -325,13 +323,6 @@ const App: React.FC = () => {
     }
   };
 
-  const handleToolkitExecute = (cmd: string, toolName: string) => {
-    setShowToolkit(false);
-    // Inject a simulated execution prompt
-    const prompt = `**[VIRTUAL_TERMINAL_EXECUTION]**\n\nCommand: \`${cmd}\`\n\n**TASK:** Simulate the execution of this ${toolName} command in a realistic Kali Linux terminal environment. \n1. Show the initializing logs.\n2. Show the progress (e.g., scanning, brute-forcing percentages, handshake capture).\n3. Show a successful 'hit' or result example (mock data).\n4. Explain what happened in technical terms and how this tool works in real life.`;
-    handleSendMessage(prompt);
-  };
-
   if (!bootComplete) {
     return <BiosBoot onComplete={() => setBootComplete(true)} />;
   }
@@ -379,9 +370,6 @@ const App: React.FC = () => {
       {/* Live Voice Modal */}
       <LiveVoiceModal isOpen={showLiveVoice} onClose={() => setShowLiveVoice(false)} mode={mode} />
 
-      {/* Cyber Warfare Toolkit Modal */}
-      <HackingToolkit isOpen={showToolkit} onClose={() => setShowToolkit(false)} onExecute={handleToolkitExecute} />
-
       {/* Mobile Sidebar Toggle */}
       <div className="fixed top-4 left-4 z-50 md:hidden">
         <button 
@@ -400,8 +388,6 @@ const App: React.FC = () => {
           clearChat={() => setMessages([])} 
           onCloseMobile={() => setSidebarOpen(false)}
           onStartLive={() => setShowLiveVoice(true)}
-          onOpenToolkit={() => setShowToolkit(true)}
-          onQuickCommand={(cmd) => handleSendMessage(cmd)}
         />
       </div>
 
