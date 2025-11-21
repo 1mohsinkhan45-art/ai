@@ -90,7 +90,7 @@ const TerminalLogs = ({ active }: { active: boolean }) => {
 
   return (
     <div className="fixed bottom-24 right-4 w-72 bg-black/90 border border-green-500 p-3 font-mono text-[10px] text-green-500 z-50 opacity-90 pointer-events-none rounded shadow-[0_0_15px_rgba(0,255,0,0.2)]">
-        <div className="border-b border-green-500/50 mb-2 pb-1 font-bold">&gt;&gt; SYSTEM_TRACE</div>
+        <div className="border-b border-green-500/50 mb-2 pb-1 font-bold">{'>>'} SYSTEM_TRACE</div>
         {logs.map((l, i) => <div key={i} className="truncate">{l}</div>)}
         <div className="animate-pulse mt-1">_</div>
     </div>
