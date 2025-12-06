@@ -9,10 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "process": "latest",
+    "buffer": "latest",
+    "util": "latest",
+    "stream": "latest",
+    "events": "latest",
     "react-markdown": "^10.1.0",
     "@google/genai": "^1.30.0",
     "react-dom": "^19.2.0",
-    "react": "^19.2.0"
+    "react": "^19.2.0",
+    "jszip": "3.10.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

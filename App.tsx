@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatArea } from './components/ChatArea';
 import { Sidebar } from './components/Sidebar';
 import { SystemStatus } from './components/SystemStatus';
-import { generateResponse, setCustomApiKey } from './services/geminiService';
+import { generateResponse } from './services/geminiService';
 import { LiveVoiceModal } from './components/LiveVoiceModal';
 import { BiosBoot } from './components/BiosBoot';
 import { Message, AppMode } from './types';
@@ -215,7 +214,6 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [apiKeyError, setApiKeyError] = useState(false);
   const [showLiveVoice, setShowLiveVoice] = useState(false);
-  const [manualKey, setManualKey] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -226,17 +224,6 @@ const App: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Handle Manual Key Submission
-  const handleManualKeySubmit = () => {
-    if (manualKey.trim().length > 10) {
-        setCustomApiKey(manualKey);
-        setApiKeyError(false);
-        window.location.reload();
-    } else {
-        alert("Please enter a valid API Key");
-    }
-  };
 
   const handleModeSwitch = (newMode: AppMode) => {
     setMode(newMode);
@@ -336,25 +323,9 @@ const App: React.FC = () => {
           <div className="bg-black/50 p-3 rounded border border-red-500/50 mb-6 text-left font-mono text-xs md:text-sm">
             <p className="text-red-400 font-bold">⚠️ Key Not Found</p>
             <p>Go to Vercel Dashboard &gt; Settings &gt; Environment Variables.</p>
-            <p>Add Key: <span className="text-white">VITE_API_KEY</span></p>
+            <p>Add Key: <span className="text-white">API_KEY</span></p>
             <p className="mt-2 text-yellow-400">IMPORTANT: You MUST Redeploy the project after adding the key!</p>
           </div>
-           <div className="bg-white/5 p-4 rounded border border-white/10 flex flex-col justify-center">
-                <h3 className="text-white font-bold mb-2">Paste Key Here (Temporary)</h3>
-                <input 
-                    type="text" 
-                    value={manualKey}
-                    onChange={(e) => setManualKey(e.target.value)}
-                    placeholder="AIzaSy... (Paste Key Here)"
-                    className="w-full bg-black border border-gray-600 rounded p-3 text-white mb-3 focus:border-green-500 outline-none text-sm font-mono"
-                />
-                <button 
-                    onClick={handleManualKeySubmit}
-                    className="w-full py-3 bg-green-600 hover:bg-green-500 text-black font-bold rounded text-sm transition-colors shadow-[0_0_15px_rgba(0,255,0,0.3)]"
-                >
-                    UNLOCK SYSTEM
-                </button>
-            </div>
         </div>
       </div>
     );

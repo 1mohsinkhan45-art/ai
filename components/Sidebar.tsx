@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AppMode } from '../types';
+import { downloadProjectZip } from '../services/exportService';
 
 interface SidebarProps {
   mode: AppMode;
@@ -12,6 +13,19 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ mode, setMode, clearChat, onCloseMobile, onStartLive }) => {
   const isHacker = mode === 'hacker';
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+        await downloadProjectZip();
+    } catch (e) {
+        console.error("Download failed", e);
+        alert("Failed to generate zip file.");
+    } finally {
+        setIsDownloading(false);
+    }
+  };
 
   return (
     <div className={`h-full w-64 flex flex-col border-r transition-colors duration-300 ${
@@ -68,6 +82,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ mode, setMode, clearChat, onCl
 
       {/* Actions */}
       <div className="p-4 border-t border-white/5 space-y-4">
+        
+        {/* DOWNLOAD ZIP BUTTON */}
+        <button 
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className={`w-full p-2 text-xs font-bold border rounded transition-all flex items-center justify-center gap-2 ${
+             isHacker 
+             ? 'border-cyber-matrix text-cyber-matrix hover:bg-cyber-matrix hover:text-black'
+             : 'border-cyber-neon text-cyber-neon hover:bg-cyber-neon hover:text-black'
+          } ${isDownloading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+            {isDownloading ? (
+                <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    {isHacker ? 'COMPRESSING...' : 'Zipping...'}
+                </>
+            ) : (
+                <>
+                    <i className="fas fa-file-archive"></i>
+                    {isHacker ? 'EXTRACT_SOURCE_CODE' : 'Download Source Zip'}
+                </>
+            )}
+        </button>
+
         <div className={`p-3 rounded-lg border ${isHacker ? 'border-cyber-matrix bg-cyber-matrix/5' : 'border-gray-700 bg-gray-800/50'}`}>
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs uppercase font-bold">Status</span>

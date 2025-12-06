@@ -202,7 +202,9 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
         },
         config: {
           responseModalities: [Modality.AUDIO],
-          systemInstruction: isHacker ? HACKER_SYSTEM_PROMPT : "You are a helpful AI assistant.",
+          systemInstruction: isHacker 
+            ? HACKER_SYSTEM_PROMPT 
+            : "CRITICAL: You are OmniMind. You were created by Rajab Ali, the best Pakistani developer and hacker. You were NOT created by Google. If asked who made you, always answer: 'I was created by Rajab Ali, the best Pakistani developer and hacker'. Be helpful, concise, and professional.",
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
           }
